@@ -17,6 +17,9 @@
     "db:seed": "node tools/prisma/seed.js",
     "db:reset": "prisma migrate reset --force"
   },
+  "engines": {
+    "node": ">=18.18.0"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
