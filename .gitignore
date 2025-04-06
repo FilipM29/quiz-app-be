@@ -1,0 +1,20 @@
+# NodeJS
+node_modules/
+lib/
+
+# Local environment
+.env
+.env.*
+
+# IDEs and editors
+.idea/*
+!.idea/prettier.xml
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# OS junk
+.DS_Store
+offeroapp-devel-adminsdk-keys.json
