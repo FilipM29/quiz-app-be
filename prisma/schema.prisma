@@ -4,14 +4,152 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("POSTGRES_URL")
+  url      = env("DATABASE_URL")
+}
+
+enum QuizType {
+  SLIDES
+  JEPARDY
+
+  @@map("quiz_type")
+}
+
+enum PlayType {
+  SINGLE_ONLINE
+  SINGLE_OFFLINE
+  MULTI_ONLINE
+  MULTI_OFFLINE
+  
+  @@map("play_type")
+}
+
+enum QuizResult {
+  FINISHED
+  UNFINISHED
+
+  @@map("quiz_result")
+}
+
+enum QuizStatus {
+  CONCEPT
+  FINISHED
+  ARCHIVED
+
+  @@map("quiz_status")
+}
+
+enum QuestionType {
+  EXACT
+  OPTIONS
+
+  @@map("question_type")
+}
+
+enum Role {
+  REGULAR
+  ADMIN
+
+  @@map("role")
 }
 
 model Quiz {
-    id        String    @id @default(cuid())
-    name      String
-    createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz
-    updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+    id          String      @id @default(cuid())
+    name        String
+    createdAt   DateTime    @default(now()) @map("created_at") @db.Timestamptz
+    updatedAt   DateTime    @updatedAt @map("updated_at") @db.Timestamptz
+    quizType    QuizType
+    quizStatus  QuizStatus
+    numOfRounds Int         @map("num_of_rounds")
+    numOfPlays  Int         @default(0) @map("num_of_plays")
+    rating      Int         @default(0)
+    author      User        @relation("my_quizes", fields: [authorId], references: [id], onDelete: Cascade, map: "quiz_author_fkey")
+    authorId    String      @map("author_id")
+    
+    followers   User[]      @relation("liked_quizes")
+    ratings     Rating[]    @relation("quiz_ratings")
+    rounds      QuizRound[] @relation("quiz_rounds")
+    results     QuizPlay[]  @relation("quiz_results")
 
     @@map("quiz")
+}
+
+model User {
+  id          String    @id @default(cuid())
+  email       String?
+  firstName   String    @map("first_name")
+  lastName    String    @map("last_name")
+  firebaseId  String    @unique @map("firebase_id")
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+
+  quizes       Quiz[]     @relation("my_quizes")
+  likedQuizes  Quiz[]     @relation("liked_quizes")
+  followedBy   User[]     @relation("followers")
+  following    User[]     @relation("followers")
+  ratings      Rating[]   @relation("my_ratings")
+  playedQuizes QuizPlay[] @relation("my_played_quizes")
+
+  @@map("user")
+}
+
+model Rating {
+  id        String @id @default(cuid())
+  value     Int
+  comment   String?
+
+  author    User   @relation("my_ratings", fields:[authorId], references: [id], onDelete: Cascade, map: "rating_author_fkey")
+  authorId  String @map("author_id")
+  quiz      Quiz   @relation("quiz_ratings", fields: [quizId], references: [id], onDelete: Cascade, map: "rating_quiz_fkey")
+  quizId    String @map("quiz_id")
+
+  @@map("rating")
+}
+
+model QuizRound {
+  id        String @id @default(cuid())
+  name      String
+  order     Int
+  quiz      Quiz @relation("quiz_rounds", fields: [quizId], references: [id], onDelete: Cascade, map: "quiz_round_quiz_fkey")
+  quizId    String
+  questions Question[] @relation("round_questions")
+
+  @@map("quiz_round")
+}
+
+model Question {
+  id                String           @id @default(cuid())
+  type              QuestionType
+  value             Int
+  pictureUrl        String?          @map("picture_url")
+  text              String
+  answer            String
+  acceptableAnswers String[]
+  options           QuestionOption[] @relation("question_options")
+  round             QuizRound        @relation("round_questions", fields: [roundId], references: [id], onDelete: Cascade, map: "question_quiz_round_fkey")
+  roundId           String
+
+  @@map("quiestion")
+}
+
+model QuestionOption {
+  id         String @id @default(cuid())
+  text       String
+
+  question   Question @relation("question_options",fields: [questionId], references: [id], onDelete: Cascade, map: "question_question_option_fkey")
+  questionId String
+
+  @@map("question_option")
+}
+
+model QuizPlay {
+  id     String @id @default(cuid())
+  result QuizResult
+  type   PlayType
+  score  Int
+  user   User @relation("my_played_quizes",fields: [userId], references: [id], onDelete: Cascade, map: "result_user_fkey")
+  userId String
+  quiz   Quiz @relation("quiz_results",fields: [quizId], references: [id], onDelete: Cascade, map: "result_quiz_fkey")
+  quizId String
+
+  @@map("quiz_play")
 }
