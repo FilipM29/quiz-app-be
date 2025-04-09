@@ -27,10 +27,9 @@ PORT="8080"
 NODE_ENVIROMENT="development"
 
 # PostgreSQL
-POSTGRES_URL=""
-POSTGRES_USER=""
-POSTGRES_PASSWORD=""
-
+POSTGRES_USER=
+POSTGRES_PASSWORD=
+POSTGRES_DB=
 ```
 
 ### Build and run
@@ -38,6 +37,9 @@ POSTGRES_PASSWORD=""
 To start local development server you need to run these commands:
 
 - `npm start` to start backend server.
+
+To start local database use existing docker-compose.yml, you will need to populate POSTGRES variables in `.env` file.
+- `docker compose up -d`
 
 Other available npm scripts:
 
