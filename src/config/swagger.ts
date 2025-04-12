@@ -5,6 +5,10 @@ export const swaggerOptions = {
       {
         name: 'health',
         description: 'API health related endpoints'
+      },
+      {
+        name: 'users',
+        description: 'API user related endpoints'
       }
     ]
   }

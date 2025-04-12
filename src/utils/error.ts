@@ -2,7 +2,7 @@ import {
   PrismaClientKnownRequestError,
   PrismaClientValidationError
 } from '@prisma/client/runtime/library';
-import type { FastifyReply, FastifyRequest } from 'fastify';
+import { FastifyReply, FastifyRequest, errorCodes } from 'fastify';
 import {
   AccessForbiddenError,
   AuthRequiredError,
@@ -31,6 +31,10 @@ export async function errorHandler(
     return reply.status(400).send({ msg: error.message });
   }
 
+  if (error.message.includes('required property')) {
+    return reply.status(400).send({ msg: error.message });
+  }
+
   if (error instanceof NotFoundError) {
     return reply.status(404).send({ msg: error.message });
   }
@@ -50,6 +54,8 @@ export async function errorHandler(
   if (error instanceof PrismaClientValidationError) {
     return reply.status(422).send({ msg: error.message });
   }
+
+  console.log('error: ', error.message);
 
   return reply.status(500).send({ msg: messages.internalServerError() });
 }
