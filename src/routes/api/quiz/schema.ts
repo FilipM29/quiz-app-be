@@ -1,5 +1,4 @@
 ﻿import {Type} from "@sinclair/typebox";
-import {User} from "~/routes/api/users/schema";
 import {FastifyInstance, FastifySchema} from "fastify";
 import {createQuiz, deleteQuiz, getAllQuizzes, getQuizById, updateQuiz} from "~/routes/api/quiz/handler";
 
@@ -14,9 +13,6 @@ const Quiz = Type.Object({
   quizStatus: Type.String(),
   rating: Type.Number(),
   authorId: Type.String(),
-  author: User,
-  followers: Type.Array(User),
-  //TODO: add ratings, rounds, results once ready
 })
 
 const createQuizSchema: FastifySchema = {
