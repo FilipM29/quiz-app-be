@@ -9,19 +9,19 @@ import {
 
 const userRoutes: FastifyPluginCallback = (fastify, _opts, done) => {
   // POST /users - Create a new user
-  fastify.post('/users', createUserOpt(fastify));
+  fastify.post('', createUserOpt(fastify));
 
   // GET /users/:id - Get a user by ID
-  fastify.get('/users/:id', getUserByIdOpt(fastify));
+  fastify.get('/:id', getUserByIdOpt(fastify));
 
   // GET /users - Get all users
-  fastify.get('/users', getAllUsersOpt(fastify));
+  fastify.get('', getAllUsersOpt(fastify));
 
   // PUT /users/:id - Update a user
-  fastify.put('/users/:id', updateUserOpt(fastify));
+  fastify.put('/:id', updateUserOpt(fastify));
 
   // DELETE /users/:id - Delete a user
-  fastify.delete('/users/:id', deleteUserOpt(fastify));
+  fastify.delete('/:id', deleteUserOpt(fastify));
 
   done();
 };

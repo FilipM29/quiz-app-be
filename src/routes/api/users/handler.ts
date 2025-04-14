@@ -26,7 +26,7 @@ export const getUserById = async (req: FastifyRequest, reply: FastifyReply) => {
     const user = await UserService.findUser(id);
     reply.status(200).send(user);
   } catch (error) {
-    reply.status(404).send({ message: messages.notFound('user', id) });
+    reply.status(404).send({ message: messages.notFound('User', id) });
   }
 };
 
@@ -50,7 +50,7 @@ export const updateUser = async (req: FastifyRequest, reply: FastifyReply) => {
     const user = await UserService.updateUser(id, email, firstName, lastName);
     reply.status(200).send(user);
   } catch (error) {
-    reply.status(404).send({ message: messages.notFound('user', id) });
+    reply.status(404).send({ message: messages.notFound('User', id) });
   }
 };
 
@@ -61,6 +61,6 @@ export const deleteUser = async (req: FastifyRequest, reply: FastifyReply) => {
     const result = await UserService.deleteUser(id);
     reply.status(200).send(result);
   } catch (error) {
-    reply.status(404).send({ message: messages.notFound('user', id) });
+    reply.status(404).send({ message: messages.notFound('User', id) });
   }
 };

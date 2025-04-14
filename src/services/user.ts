@@ -26,7 +26,7 @@ export class UserService {
     });
 
     if (!user) {
-      throw new NotFoundError(messages.notFound('user', id));
+      throw new NotFoundError(messages.notFound('User', id));
     }
 
     return user;
@@ -59,13 +59,13 @@ export class UserService {
     });
 
     if (!user) {
-      throw new NotFoundError(messages.notFound('user', id));
+      throw new NotFoundError(messages.notFound('User', id));
     }
 
     await prisma.user.delete({
       where: { id }
     });
 
-    return { message: messages.deleted('user') };
+    return { message: messages.deleted('User') };
   }
 }

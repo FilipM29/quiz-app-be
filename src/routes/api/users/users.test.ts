@@ -6,7 +6,7 @@ let userId: string;
 const firebaseId = 'testFirebaseId';
 const firstName = 'testFirstName';
 const lastName = 'testLastName';
-const email = 'testEmail';
+const email = 'test@Email.com';
 
 describe('users endpoints', () => {
   beforeAll(async () => {
@@ -57,14 +57,12 @@ describe('users endpoints', () => {
   });
 
   it('should update a user (PUT /users)', async () => {
-    const updatedEmail = 'updatedTestEmail';
+    const updatedEmail = 'updatedTest@Email.com';
     const response = await server.inject({
       method: 'PUT',
       url: `/api/users/${userId}`,
       payload: {
-        email: updatedEmail,
-        firstName,
-        lastName
+        email: updatedEmail
       }
     });
 
@@ -82,7 +80,7 @@ describe('users endpoints', () => {
 
     expect(response.statusCode).toEqual(200);
     const body = JSON.parse(response.body);
-    expect(body.message).toEqual('User deleted successfully');
+    expect(body.message).toEqual('User deleted!');
 
     // Verify the user no longer exists
     const getResponse = await server.inject({

@@ -58,7 +58,14 @@ const updateUserSchema: FastifySchema = {
   params: Type.Object({
     id: Type.String()
   }),
-  body: Type.Pick(User, ['email', 'firstName', 'lastName']),
+  body: Type.Object(
+    {
+      email: Type.Optional(Type.String({ format: 'email' })),
+      firstName: Type.Optional(Type.String()),
+      lastName: Type.Optional(Type.String())
+    },
+    { additionalProperties: false } // Disallow extra fields
+  ),
   response: {
     200: User,
     404: Type.Object({
