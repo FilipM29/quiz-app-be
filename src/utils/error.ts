@@ -2,7 +2,7 @@ import {
   PrismaClientKnownRequestError,
   PrismaClientValidationError
 } from '@prisma/client/runtime/library';
-import type { FastifyReply, FastifyRequest } from 'fastify';
+import { FastifyReply, FastifyRequest, errorCodes } from 'fastify';
 import {
   AccessForbiddenError,
   AuthRequiredError,
@@ -28,6 +28,10 @@ export async function errorHandler(
   }
 
   if (error instanceof BadRequestError) {
+    return reply.status(400).send({ msg: error.message });
+  }
+
+  if (error.message.includes('required property')) {
     return reply.status(400).send({ msg: error.message });
   }
 
