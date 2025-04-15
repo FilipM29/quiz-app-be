@@ -55,7 +55,5 @@ export async function errorHandler(
     return reply.status(422).send({ msg: error.message });
   }
 
-  console.log('error: ', error.message);
-
   return reply.status(500).send({ msg: messages.internalServerError() });
 }
