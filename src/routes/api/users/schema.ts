@@ -9,7 +9,7 @@ import {
 } from './handler';
 
 // User schema
-const User = Type.Object({
+export const User = Type.Object({
   id: Type.String(),
   email: Type.String({ format: 'email' }),
   firstName: Type.String(),
