@@ -1,5 +1,5 @@
 ﻿import { prisma } from '~/utils';
-import { QuizStatus, QuizType} from '@prisma/client';
+import {Quiz, QuizStatus, QuizType} from '@prisma/client';
 import {NotFoundError} from "~/models";
 import {messages} from "~/resources";
 
@@ -10,8 +10,6 @@ export class QuizService {
     quizType: QuizType,
     quizStatus: QuizStatus,
     numOfRounds: number,
-    numOfPlays: number,
-    rating: number,
     authorId: string,
   ) {
     const quiz = await prisma.quiz.create({
@@ -20,8 +18,8 @@ export class QuizService {
         quizType,
         quizStatus,
         numOfRounds,
-        numOfPlays,
-        rating,
+        numOfPlays: 0,
+        rating: 0,
         authorId
       }
     });
@@ -35,7 +33,7 @@ export class QuizService {
     });
 
     if (!quiz) {
-      throw new NotFoundError(messages.notFound('quiz', id));
+      throw new NotFoundError(messages.notFound('Quiz', id));
     }
 
     return quiz;
@@ -49,22 +47,12 @@ export class QuizService {
 
   static async updateQuiz(
     id: string,
-    name: string,
-    quizType: QuizType,
-    quizStatus: QuizStatus,
-    numOfRounds: number,
-    numOfPlays: number,
-    rating: number
+    data: Partial<Omit<Quiz, 'id'>>,
   ) {
     const quiz = await prisma.quiz.update({
       where: { id },
       data: {
-        name,
-        quizType,
-        quizStatus,
-        numOfRounds,
-        numOfPlays,
-        rating,
+        ...data,
         updatedAt: new Date()
       }
     });
@@ -78,13 +66,13 @@ export class QuizService {
     });
 
     if (!quiz) {
-      throw new NotFoundError(messages.notFound('quiz', id));
+      throw new NotFoundError(messages.notFound('Quiz', id));
     }
 
     await prisma.quiz.delete({
       where: { id }
     });
 
-    return {message: messages.deleted('quiz') };
+    return {message: messages.deleted('Quiz') };
   }
 }

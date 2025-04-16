@@ -18,7 +18,7 @@ const Quiz = Type.Object({
 const createQuizSchema: FastifySchema = {
   description: 'Create a new quiz',
   tags: ['quiz'],
-  body: Type.Pick(Quiz, ['name', 'quizType', 'quizStatus', 'numOfRounds', 'numOfPlays', 'rating', 'authorId']),
+  body: Type.Pick(Quiz, ['name', 'quizType', 'quizStatus', 'numOfRounds', 'authorId']),
   response: {
     201: Quiz
   }
@@ -52,7 +52,9 @@ const updateQuizSchema: FastifySchema = {
   params: Type.Object({
     id: Type.String()
   }),
-  body: Type.Pick(Quiz, ['name', 'quizType', 'quizStatus', 'numOfRounds', 'numOfPlays', 'rating']),
+  body: Type.Object({
+    data: Type.Partial(Type.Omit(Quiz, ['id']))
+  }),
   response: {
     200: Quiz,
     404: Type.Object({

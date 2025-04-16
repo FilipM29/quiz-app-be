@@ -34,8 +34,6 @@ describe('quiz endpoints', () => {
         quizType: QuizType.SLIDES,
         quizStatus: QuizStatus.CONCEPT,
         numOfRounds: 5,
-        numOfPlays: 5,
-        rating: 10,
         authorId: user.id
       }
     });
@@ -44,6 +42,7 @@ describe('quiz endpoints', () => {
     const body = JSON.parse(response.body);
     expect(body).toHaveProperty('id');
     expect(body.name).toEqual(quizName);
+    expect(body.numOfPlays).toEqual(0);
     currentQuizId = body.id;
   });
 
@@ -62,7 +61,7 @@ describe('quiz endpoints', () => {
   it('should get all quizzes', async () => {
     const response = await server.inject({
       method: 'GET',
-      url: '/api/quiz/all'
+      url: '/api/quiz'
     });
 
     expect(response.statusCode).toEqual(200);
@@ -77,12 +76,11 @@ describe('quiz endpoints', () => {
       method: 'PUT',
       url: `/api/quiz/${currentQuizId}`,
       payload: {
-        name: updatedName,
-        quizType: QuizType.JEPARDY,
-        quizStatus: QuizStatus.CONCEPT,
-        numOfRounds: 10,
-        numOfPlays: 10,
-        rating: 10
+        data: {
+          name: updatedName,
+          quizType: QuizType.JEPARDY,
+          rating: 10
+        }
       }
     });
 
@@ -91,8 +89,8 @@ describe('quiz endpoints', () => {
     expect(body.id).toEqual(currentQuizId);
     expect(body.name).toEqual(updatedName);
     expect(body.quizType).toEqual(QuizType.JEPARDY);
-    expect(body.numOfRounds).toEqual(10);
-    expect(body.numOfPlays).toEqual(10);
+    expect(body.rating).toEqual(10);
+    expect(body.numOfPlays).toEqual(0);
   })
 
   it('should delete a quiz', async () => {
@@ -103,6 +101,6 @@ describe('quiz endpoints', () => {
 
     expect(response.statusCode).toEqual(200);
     const body = JSON.parse(response.body);
-    expect(body.message).toEqual('quiz deleted!');
+    expect(body.message).toEqual('Quiz deleted!');
   })
 });

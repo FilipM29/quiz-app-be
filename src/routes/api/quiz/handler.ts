@@ -1,17 +1,15 @@
 ﻿import {QuizService} from "~/services/quiz";
-import {QuizStatus, QuizType} from "@prisma/client";
+import {Quiz, QuizStatus, QuizType} from "@prisma/client";
 import {messages} from "~/resources";
 import {FastifyReply, FastifyRequest} from "fastify";
 
 export const createQuiz = async (req: FastifyRequest, reply: FastifyReply) => {
-  const { name, quizType, quizStatus, numOfRounds, numOfPlays, rating, authorId } =
+  const { name, quizType, quizStatus, numOfRounds, authorId } =
     req.body as {
       name: string;
       quizType: QuizType;
       quizStatus: QuizStatus;
       numOfRounds: number;
-      numOfPlays: number;
-      rating: number;
       authorId: string;
     };
 
@@ -20,8 +18,6 @@ export const createQuiz = async (req: FastifyRequest, reply: FastifyReply) => {
     quizType,
     quizStatus,
     numOfRounds,
-    numOfPlays,
-    rating,
     authorId
   );
   reply.status(201).send(quiz);
@@ -45,24 +41,14 @@ export const getAllQuizzes = async (_req: FastifyRequest, reply: FastifyReply) =
 
 export const updateQuiz = async (req: FastifyRequest, reply: FastifyReply) => {
   const { id } = req.params as { id: string };
-  const { name, quizType, quizStatus, numOfRounds, numOfPlays, rating } = req.body as {
-    name: string;
-    quizType: QuizType;
-    quizStatus: QuizStatus;
-    numOfRounds: number;
-    numOfPlays: number;
-    rating: number;
+  const { data } = req.body as {
+    data:  Partial<Omit<Quiz, 'id'>>
   };
 
   try {
     const quiz = await QuizService.updateQuiz(
       id,
-      name,
-      quizType,
-      quizStatus,
-      numOfRounds,
-      numOfPlays,
-      rating
+      data
     );
     reply.status(200).send(quiz);
   } catch (error) {

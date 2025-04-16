@@ -3,9 +3,9 @@ import {createQuizOpt, deleteQuizOpt, getAllQuizzesOpt, getQuizByIdOpt, updateQu
 
 
 const quizRoutes: FastifyPluginCallback = (fastify, _opts, done) => {
-  fastify.post('/', createQuizOpt(fastify));
+  fastify.post('', createQuizOpt(fastify));
   fastify.get('/:id', getQuizByIdOpt(fastify));
-  fastify.get('/all', getAllQuizzesOpt(fastify));
+  fastify.get('', getAllQuizzesOpt(fastify));
   fastify.put('/:id', updateQuizOpt(fastify));
   fastify.delete('/:id', deleteQuizOpt(fastify));
 
