@@ -1,14 +1,5 @@
-/*
-  Warnings:
-
-  - Added the required column `author_id` to the `quiz` table without a default value. This is not possible if the table is not empty.
-  - Added the required column `num_of_rounds` to the `quiz` table without a default value. This is not possible if the table is not empty.
-  - Added the required column `quizStatus` to the `quiz` table without a default value. This is not possible if the table is not empty.
-  - Added the required column `quizType` to the `quiz` table without a default value. This is not possible if the table is not empty.
-
-*/
 -- CreateEnum
-CREATE TYPE "quiz_type" AS ENUM ('SLIDES', 'JEPARDY');
+CREATE TYPE "quiz_type" AS ENUM ('SLIDES', 'JEOPARDY');
 
 -- CreateEnum
 CREATE TYPE "play_type" AS ENUM ('SINGLE_ONLINE', 'SINGLE_OFFLINE', 'MULTI_ONLINE', 'MULTI_OFFLINE');
@@ -20,18 +11,32 @@ CREATE TYPE "quiz_result" AS ENUM ('FINISHED', 'UNFINISHED');
 CREATE TYPE "quiz_status" AS ENUM ('CONCEPT', 'FINISHED', 'ARCHIVED');
 
 -- CreateEnum
+CREATE TYPE "quiz_visibility" AS ENUM ('PUBLIC', 'PRIVATE');
+
+-- CreateEnum
 CREATE TYPE "question_type" AS ENUM ('EXACT', 'OPTIONS');
 
 -- CreateEnum
 CREATE TYPE "role" AS ENUM ('REGULAR', 'ADMIN');
 
--- AlterTable
-ALTER TABLE "quiz" ADD COLUMN     "author_id" TEXT NOT NULL,
-ADD COLUMN     "num_of_plays" INTEGER NOT NULL DEFAULT 0,
-ADD COLUMN     "num_of_rounds" INTEGER NOT NULL,
-ADD COLUMN     "quizStatus" "quiz_status" NOT NULL,
-ADD COLUMN     "quizType" "quiz_type" NOT NULL,
-ADD COLUMN     "rating" INTEGER NOT NULL DEFAULT 0;
+-- CreateTable
+CREATE TABLE "quiz" (
+    "id" TEXT NOT NULL,
+    "title" TEXT NOT NULL,
+    "description" TEXT NOT NULL,
+    "picture_url" TEXT,
+    "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMPTZ NOT NULL,
+    "quiz_type" "quiz_type" NOT NULL,
+    "quiz_status" "quiz_status" NOT NULL,
+    "quiz_visibility" "quiz_visibility" NOT NULL,
+    "num_of_rounds" INTEGER NOT NULL,
+    "num_of_plays" INTEGER NOT NULL DEFAULT 0,
+    "rating" INTEGER NOT NULL DEFAULT 0,
+    "author_id" TEXT NOT NULL,
+
+    CONSTRAINT "quiz_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateTable
 CREATE TABLE "user" (
@@ -60,7 +65,7 @@ CREATE TABLE "rating" (
 -- CreateTable
 CREATE TABLE "quiz_round" (
     "id" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
+    "title" TEXT NOT NULL,
     "order" INTEGER NOT NULL,
     "quizId" TEXT NOT NULL,
 

@@ -9,7 +9,7 @@ datasource db {
 
 enum QuizType {
   SLIDES
-  JEPARDY
+  JEOPARDY
 
   @@map("quiz_type")
 }
@@ -38,6 +38,13 @@ enum QuizStatus {
   @@map("quiz_status")
 }
 
+enum QuizVisibility {
+  PUBLIC
+  PRIVATE
+
+  @@map("quiz_visibility")
+}
+
 enum QuestionType {
   EXACT
   OPTIONS
@@ -54,11 +61,16 @@ enum Role {
 
 model Quiz {
     id          String      @id @default(cuid())
-    name        String
+    title       String
+    description String
+    pictureUrl  String?     @map("picture_url")
     createdAt   DateTime    @default(now()) @map("created_at") @db.Timestamptz
     updatedAt   DateTime    @updatedAt @map("updated_at") @db.Timestamptz
-    quizType    QuizType
-    quizStatus  QuizStatus
+
+    quizType        QuizType       @map("quiz_type")
+    quizStatus      QuizStatus     @map("quiz_status")
+    quizVisibility  QuizVisibility @map("quiz_visibility")
+
     numOfRounds Int         @map("num_of_rounds")
     numOfPlays  Int         @default(0) @map("num_of_plays")
     rating      Int         @default(0)
@@ -107,7 +119,7 @@ model Rating {
 
 model QuizRound {
   id        String @id @default(cuid())
-  name      String
+  title     String
   order     Int
   quiz      Quiz @relation("quiz_rounds", fields: [quizId], references: [id], onDelete: Cascade, map: "quiz_round_quiz_fkey")
   quizId    String

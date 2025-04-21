@@ -1,24 +1,48 @@
-﻿import {Type} from "@sinclair/typebox";
-import {FastifyInstance, FastifySchema} from "fastify";
-import {createQuiz, deleteQuiz, getAllQuizzes, getQuizById, updateQuiz} from "~/routes/api/quiz/handler";
+﻿import { QuizStatus, QuizType, QuizVisibility } from '@prisma/client';
+import { Type } from '@sinclair/typebox';
+import { FastifyInstance, FastifySchema } from 'fastify';
+import {
+  createQuiz,
+  deleteQuiz,
+  getAllQuizzes,
+  getMyQuizzes,
+  getQuizById,
+  getRoundsByQuizId,
+  updateQuiz
+} from '~/routes/api/quiz/handler';
+import { User } from '../users/schema';
 
 const Quiz = Type.Object({
   id: Type.String(),
-  name: Type.String(),
-  createdAt: Type.String({format: 'date-time'}),
-  updatedAt: Type.String({format: 'date-time'}),
+  title: Type.String(),
+  description: Type.String(),
+  pictureUrl: Type.Optional(Type.String()),
+  quizVisibility: Type.Enum(QuizVisibility, {
+    examples: Object.keys(QuizVisibility)
+  }),
+  createdAt: Type.String({ format: 'date-time' }),
+  updatedAt: Type.String({ format: 'date-time' }),
   numOfRounds: Type.Number(),
   numOfPlays: Type.Number(),
-  quizType: Type.String(),
-  quizStatus: Type.String(),
+  quizType: Type.Enum(QuizType, { examples: Object.keys(QuizType) }),
+  quizStatus: Type.Enum(QuizStatus, { examples: Object.keys(QuizStatus) }),
   rating: Type.Number(),
-  authorId: Type.String(),
-})
+  authorId: Type.String()
+});
 
 const createQuizSchema: FastifySchema = {
   description: 'Create a new quiz',
   tags: ['quiz'],
-  body: Type.Pick(Quiz, ['name', 'quizType', 'quizStatus', 'numOfRounds', 'authorId']),
+  body: Type.Pick(Quiz, [
+    'title',
+    'quizType',
+    'quizStatus',
+    'numOfRounds',
+    'authorId',
+    'description',
+    'quizVisibility',
+    'pictureUrl'
+  ]),
   response: {
     201: Quiz
   }
@@ -31,7 +55,20 @@ const getQuizByIdSchema: FastifySchema = {
     id: Type.String()
   }),
   response: {
-    200: Quiz,
+    200: Type.Intersect([
+      Quiz,
+      Type.Object({
+        author: User,
+        rounds: Type.Array(
+          Type.Object({
+            id: Type.String(),
+            quizId: Type.String(),
+            order: Type.Number(),
+            title: Type.String()
+          })
+        )
+      })
+    ]),
     404: Type.Object({
       message: Type.String()
     })
@@ -79,6 +116,32 @@ const deleteQuizSchema: FastifySchema = {
   }
 };
 
+const getRoundsByQuizIdSchema: FastifySchema = {
+  description: 'Get all rounds for a specific quiz by quiz ID',
+  tags: ['quizzes'],
+  params: Type.Object({
+    id: Type.String()
+  }),
+  response: {
+    200: Type.Array(
+      Type.Object({
+        id: Type.String(),
+        quizId: Type.String(),
+        order: Type.Number(),
+        title: Type.String()
+      })
+    ),
+    404: Type.Object({
+      message: Type.String()
+    })
+  }
+};
+
+export const getRoundsByQuizIdOpt = (_fastify: FastifyInstance) => ({
+  schema: getRoundsByQuizIdSchema,
+  handler: getRoundsByQuizId
+});
+
 export const createQuizOpt = (_fastify: FastifyInstance) => ({
   schema: createQuizSchema,
   handler: createQuiz
@@ -92,6 +155,11 @@ export const getQuizByIdOpt = (_fastify: FastifyInstance) => ({
 export const getAllQuizzesOpt = (_fastify: FastifyInstance) => ({
   schema: getAllQuizzesSchema,
   handler: getAllQuizzes
+});
+
+export const getMyQuizzesOpt = (_fastify: FastifyInstance) => ({
+  schema: getAllQuizzesSchema,
+  handler: getMyQuizzes
 });
 
 export const updateQuizOpt = (_fastify: FastifyInstance) => ({

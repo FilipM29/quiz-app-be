@@ -1,22 +1,27 @@
 ﻿import { prisma } from '~/utils';
-import {Quiz, QuizStatus, QuizType} from '@prisma/client';
-import {NotFoundError} from "~/models";
-import {messages} from "~/resources";
-
+import { Quiz, QuizStatus, QuizType, QuizVisibility } from '@prisma/client';
+import { NotFoundError } from '~/models';
+import { messages } from '~/resources';
 
 export class QuizService {
   static async createQuiz(
-    name: string,
+    title: string,
+    description: string,
+    pictureUrl: string | undefined,
     quizType: QuizType,
     quizStatus: QuizStatus,
+    quizVisibility: QuizVisibility,
     numOfRounds: number,
-    authorId: string,
+    authorId: string
   ) {
     const quiz = await prisma.quiz.create({
       data: {
-        name,
+        title,
+        description,
+        pictureUrl,
         quizType,
         quizStatus,
+        quizVisibility,
         numOfRounds,
         numOfPlays: 0,
         rating: 0,
@@ -29,7 +34,11 @@ export class QuizService {
 
   static async findQuiz(id: string) {
     const quiz = await prisma.quiz.findUnique({
-      where: { id }
+      where: { id },
+      include: {
+        author: true,
+        rounds: true
+      }
     });
 
     if (!quiz) {
@@ -40,15 +49,29 @@ export class QuizService {
   }
 
   static async findQuizzes() {
-    const quizzes = await prisma.quiz.findMany();
+    const quizzes = await prisma.quiz.findMany({
+      where: {
+        AND: [
+          //{ quizStatus: QuizStatus.FINISHED }, for testing purposes
+          { quizVisibility: QuizVisibility.PUBLIC }
+        ]
+      }
+    });
 
     return quizzes;
   }
 
-  static async updateQuiz(
-    id: string,
-    data: Partial<Omit<Quiz, 'id'>>,
-  ) {
+  static async findMyQuizzes(authorId: string) {
+    const quizzes = await prisma.quiz.findMany({
+      where: {
+        authorId
+      }
+    });
+
+    return quizzes;
+  }
+
+  static async updateQuiz(id: string, data: Partial<Omit<Quiz, 'id'>>) {
     const quiz = await prisma.quiz.update({
       where: { id },
       data: {
@@ -73,6 +96,6 @@ export class QuizService {
       where: { id }
     });
 
-    return {message: messages.deleted('Quiz') };
+    return { message: messages.deleted('Quiz') };
   }
 }
