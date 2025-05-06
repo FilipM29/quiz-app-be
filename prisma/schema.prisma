@@ -32,7 +32,7 @@ enum QuizResult {
 
 enum QuizStatus {
   CONCEPT
-  FINISHED
+  PUBLISHED
   ARCHIVED
 
   @@map("quiz_status")
@@ -48,6 +48,7 @@ enum QuizVisibility {
 enum QuestionType {
   EXACT
   OPTIONS
+  INTERVAL
 
   @@map("question_type")
 }
@@ -129,28 +130,28 @@ model QuizRound {
 }
 
 model Question {
-  id                String           @id @default(cuid())
+  id                String        @id @default(cuid())
   type              QuestionType
   value             Int
-  pictureUrl        String?          @map("picture_url")
+  pictureUrl        String?       @map("picture_url")
   text              String
   answer            String
   acceptableAnswers String[]
-  options           QuestionOption[] @relation("question_options")
-  round             QuizRound        @relation("round_questions", fields: [roundId], references: [id], onDelete: Cascade, map: "question_quiz_round_fkey")
+  options           AnswerOption[] @relation("answer_options")
+  range             Int?  
+  round             QuizRound     @relation("round_questions", fields: [roundId], references: [id], onDelete: Cascade, map: "question_quiz_round_fkey")
   roundId           String
 
   @@map("quiestion")
 }
 
-model QuestionOption {
+model AnswerOption {
   id         String @id @default(cuid())
   text       String
+  answer     Question @relation("answer_options",fields: [questionId], references: [id], onDelete: Cascade, map: "question_answer_option_fkey")
+  questionId   String
 
-  question   Question @relation("question_options",fields: [questionId], references: [id], onDelete: Cascade, map: "question_question_option_fkey")
-  questionId String
-
-  @@map("question_option")
+  @@map("answer_option")
 }
 
 model QuizPlay {

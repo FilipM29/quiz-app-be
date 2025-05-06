@@ -10,10 +10,11 @@ export class QuestionsService {
     value: number,
     type: QuestionType,
     answer: string,
-    acceptableAnswers: string[] = [],
-    options: string[] = []
+    acceptableAnswers?: string[],
+    range?: number | undefined,
+    options?: string[]
   ) {
-    const optionsExists = options.length > 0;
+    const optionsExists = options && options.length > 0;
 
     const question = await prisma.question.create({
       data: {
@@ -22,7 +23,8 @@ export class QuestionsService {
         value,
         type,
         answer,
-        acceptableAnswers
+        acceptableAnswers,
+        range
       },
       include: {
         options: optionsExists
@@ -30,7 +32,7 @@ export class QuestionsService {
     });
 
     if (optionsExists) {
-      await prisma.questionOption.createMany({
+      await prisma.answerOption.createMany({
         data: options.map((option) => ({
           text: option,
           questionId: question.id
@@ -72,13 +74,15 @@ export class QuestionsService {
     type?: QuestionType,
     answer?: string,
     acceptableAnswers?: string[],
+    range?: number,
     options?: string[]
   ) {
-    const data: any = {
+    const data = {
       ...(text && { text }),
-      ...(value !== undefined && { value }),
+      ...(value && { value }),
       ...(type && { type }),
       ...(answer && { answer }),
+      ...(range && { range }),
       ...(acceptableAnswers && { acceptableAnswers })
     };
 
@@ -86,16 +90,15 @@ export class QuestionsService {
       where: { id },
       data
     });
-    console.log('question', question);
 
     if (options) {
       // Delete existing options for the question
-      await prisma.questionOption.deleteMany({
+      await prisma.answerOption.deleteMany({
         where: { questionId: id }
       });
 
       // Add new options
-      await prisma.questionOption.createMany({
+      await prisma.answerOption.createMany({
         data: options.map((option) => ({
           text: option,
           questionId: id

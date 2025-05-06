@@ -7,16 +7,25 @@ export const createQuestion = async (
   req: FastifyRequest,
   reply: FastifyReply
 ) => {
-  const { roundId, text, value, type, answer, acceptableAnswers, options } =
-    req.body as {
-      roundId: string;
-      text: string;
-      value: number;
-      type: QuestionType;
-      answer: string;
-      acceptableAnswers: string[];
-      options: string[];
-    };
+  const {
+    roundId,
+    text,
+    value,
+    type,
+    answer,
+    acceptableAnswers,
+    options,
+    range
+  } = req.body as {
+    roundId: string;
+    text: string;
+    value: number;
+    type: QuestionType;
+    answer: string;
+    acceptableAnswers: string[];
+    options: string[];
+    range?: number;
+  };
 
   const question = await QuestionsService.createQuestion(
     roundId,
@@ -25,6 +34,7 @@ export const createQuestion = async (
     type,
     answer,
     acceptableAnswers,
+    range,
     options
   );
   reply.status(201).send(question);
@@ -49,13 +59,14 @@ export const updateQuestion = async (
   reply: FastifyReply
 ) => {
   const { id } = req.params as { id: string };
-  const { text, value, type, answer, acceptableAnswers, options } =
+  const { text, value, type, answer, acceptableAnswers, options, range } =
     req.body as {
       text?: string;
       value?: number;
       type?: QuestionType;
       answer?: string;
       acceptableAnswers?: string[];
+      range?: number;
       options?: string[];
     };
 
@@ -67,6 +78,7 @@ export const updateQuestion = async (
       type,
       answer,
       acceptableAnswers,
+      range,
       options
     );
     reply.status(200).send(question);

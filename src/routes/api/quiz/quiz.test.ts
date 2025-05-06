@@ -34,7 +34,7 @@ describe('quiz endpoints', () => {
         title: quizTitle,
         description: 'This is a test quiz',
         quizType: QuizType.SLIDES,
-        quizStatus: QuizStatus.FINISHED,
+        quizStatus: QuizStatus.PUBLISHED,
         quizVisibility: 'PUBLIC',
         numOfRounds: 5,
         authorId: user.id
@@ -92,7 +92,7 @@ describe('quiz endpoints', () => {
     expect(body.id).toEqual(currentQuizId);
     expect(body.title).toEqual(updatedTitle);
     expect(body.quizType).toEqual(QuizType.JEOPARDY);
-    expect(body.quizStatus).toEqual(QuizStatus.FINISHED);
+    expect(body.quizStatus).toEqual(QuizStatus.PUBLISHED);
   });
 
   it('should delete a quiz', async () => {

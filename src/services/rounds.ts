@@ -37,8 +37,8 @@ export class RoundsService {
     const round = await prisma.quizRound.update({
       where: { id },
       data: {
-        ...(title !== undefined && { title }),
-        ...(order !== undefined && { order })
+        ...(title && { title }),
+        ...(order && { order })
       }
     });
     return round;

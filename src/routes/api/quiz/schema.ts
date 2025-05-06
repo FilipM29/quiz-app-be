@@ -5,7 +5,7 @@ import {
   createQuiz,
   deleteQuiz,
   getAllQuizzes,
-  getMyQuizzes,
+  getUserQuizzes,
   getQuizById,
   getRoundsByQuizId,
   updateQuiz
@@ -159,7 +159,7 @@ export const getAllQuizzesOpt = (_fastify: FastifyInstance) => ({
 
 export const getMyQuizzesOpt = (_fastify: FastifyInstance) => ({
   schema: getAllQuizzesSchema,
-  handler: getMyQuizzes
+  handler: getUserQuizzes
 });
 
 export const updateQuizOpt = (_fastify: FastifyInstance) => ({

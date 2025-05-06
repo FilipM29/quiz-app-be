@@ -36,7 +36,7 @@ export const getQuizById = async (req: FastifyRequest, reply: FastifyReply) => {
     const quiz = await QuizService.findQuiz(id);
     reply.status(200).send(quiz);
   } catch (error) {
-    reply.status(404).send({ message: messages.notFound('quiz', id) });
+    reply.status(404).send({ message: messages.notFound('Quiz', id) });
   }
 };
 
@@ -48,7 +48,7 @@ export const getAllQuizzes = async (
   reply.status(200).send(quizzes);
 };
 
-export const getMyQuizzes = async (
+export const getUserQuizzes = async (
   req: FastifyRequest,
   reply: FastifyReply
 ) => {
@@ -67,7 +67,7 @@ export const updateQuiz = async (req: FastifyRequest, reply: FastifyReply) => {
     const quiz = await QuizService.updateQuiz(id, data);
     reply.status(200).send(quiz);
   } catch (error) {
-    reply.status(404).send({ message: messages.notFound('quiz', id) });
+    reply.status(404).send({ message: messages.notFound('Quiz', id) });
   }
 };
 
@@ -78,7 +78,7 @@ export const deleteQuiz = async (req: FastifyRequest, reply: FastifyReply) => {
     const result = await QuizService.deleteQuiz(id);
     reply.status(200).send(result);
   } catch (error) {
-    reply.status(404).send({ message: messages.notFound('quiz', id) });
+    reply.status(404).send({ message: messages.notFound('Quiz', id) });
   }
 };
 
@@ -92,6 +92,6 @@ export const getRoundsByQuizId = async (
     const rounds = await RoundsService.getRoundsByQuizId(id);
     reply.status(200).send(rounds);
   } catch (error) {
-    reply.status(404).send({ message: messages.notFound('quiz', id) });
+    reply.status(404).send({ message: messages.notFound('Quiz', id) });
   }
 };
