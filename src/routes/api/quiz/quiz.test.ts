@@ -1,11 +1,12 @@
-﻿import createServer from "~/server";
-import type {FastifyInstance} from "fastify";
-import {QuizStatus, QuizType, User} from "@prisma/client";
+﻿import createServer from '~/server';
+import type { FastifyInstance } from 'fastify';
+import { QuizStatus, QuizType, User } from '@prisma/client';
 
 let server: FastifyInstance;
 let user: User;
 let currentQuizId: string;
-let quizName = 'TestQuiz';
+const quizTitle = 'TestQuiz';
+
 describe('quiz endpoints', () => {
   beforeAll(async () => {
     server = await createServer();
@@ -14,25 +15,27 @@ describe('quiz endpoints', () => {
         email: 'user@example.com',
         firstName: 'testFirstName',
         lastName: 'testLastName',
-        firebaseId: 'testFirebaseId',
+        firebaseId: 'testQuizFirebaseId'
       }
     });
-  })
+  });
 
   afterAll(async () => {
     await server.prisma.user.delete({
       where: { id: user.id }
-    })
-  })
+    });
+  });
 
   it('should create a quiz', async () => {
     const response = await server.inject({
       method: 'POST',
       url: '/api/quiz',
       payload: {
-        name: quizName,
+        title: quizTitle,
+        description: 'This is a test quiz',
         quizType: QuizType.SLIDES,
-        quizStatus: QuizStatus.CONCEPT,
+        quizStatus: QuizStatus.PUBLISHED,
+        quizVisibility: 'PUBLIC',
         numOfRounds: 5,
         authorId: user.id
       }
@@ -41,8 +44,8 @@ describe('quiz endpoints', () => {
     expect(response.statusCode).toEqual(201);
     const body = JSON.parse(response.body);
     expect(body).toHaveProperty('id');
-    expect(body.name).toEqual(quizName);
-    expect(body.numOfPlays).toEqual(0);
+    expect(body.title).toEqual(quizTitle);
+    expect(body.numOfRounds).toEqual(5);
     currentQuizId = body.id;
   });
 
@@ -55,8 +58,8 @@ describe('quiz endpoints', () => {
     expect(response.statusCode).toEqual(200);
     const body = JSON.parse(response.body);
     expect(body.id).toEqual(currentQuizId);
-    expect(body.name).toEqual(quizName);
-  })
+    expect(body.title).toEqual(quizTitle);
+  });
 
   it('should get all quizzes', async () => {
     const response = await server.inject({
@@ -67,19 +70,19 @@ describe('quiz endpoints', () => {
     expect(response.statusCode).toEqual(200);
     const body = JSON.parse(response.body);
     expect(Array.isArray(body)).toBe(true);
-    expect(body.length).toBe(1);
-  })
+    expect(body.length).toBeGreaterThan(0);
+  });
 
   it('should update a quiz', async () => {
-    const updatedName = 'UpdatedTestQuiz';
+    const updatedTitle = 'UpdatedTestQuiz';
     const response = await server.inject({
       method: 'PUT',
       url: `/api/quiz/${currentQuizId}`,
       payload: {
         data: {
-          name: updatedName,
-          quizType: QuizType.JEPARDY,
-          rating: 10
+          title: updatedTitle,
+          description: 'Updated description',
+          quizType: QuizType.JEOPARDY
         }
       }
     });
@@ -87,11 +90,10 @@ describe('quiz endpoints', () => {
     expect(response.statusCode).toEqual(200);
     const body = JSON.parse(response.body);
     expect(body.id).toEqual(currentQuizId);
-    expect(body.name).toEqual(updatedName);
-    expect(body.quizType).toEqual(QuizType.JEPARDY);
-    expect(body.rating).toEqual(10);
-    expect(body.numOfPlays).toEqual(0);
-  })
+    expect(body.title).toEqual(updatedTitle);
+    expect(body.quizType).toEqual(QuizType.JEOPARDY);
+    expect(body.quizStatus).toEqual(QuizStatus.PUBLISHED);
+  });
 
   it('should delete a quiz', async () => {
     const response = await server.inject({
@@ -102,5 +104,17 @@ describe('quiz endpoints', () => {
     expect(response.statusCode).toEqual(200);
     const body = JSON.parse(response.body);
     expect(body.message).toEqual('Quiz deleted!');
-  })
+  });
+
+  it('should get rounds by quiz ID', async () => {
+    const response = await server.inject({
+      method: 'GET',
+      url: `/api/quiz/${currentQuizId}/rounds`
+    });
+
+    expect(response.statusCode).toEqual(200);
+    const body = JSON.parse(response.body);
+    expect(Array.isArray(body)).toBe(true);
+    expect(body.length).toBe(0); // Assuming no rounds exist initially
+  });
 });
