@@ -1,6 +1,6 @@
 ﻿import { QuizStatus, QuizType, QuizVisibility } from '@prisma/client';
 import { Type } from '@sinclair/typebox';
-import { FastifyInstance, FastifySchema } from 'fastify';
+import { FastifySchema } from 'fastify';
 import {
   createQuiz,
   deleteQuiz,
@@ -11,6 +11,7 @@ import {
   updateQuiz
 } from '~/routes/api/quiz/handler';
 import { User } from '../users/schema';
+import {QuizAppFastifyInstance} from "~/models/fastify";
 
 const Quiz = Type.Object({
   id: Type.String(),
@@ -30,7 +31,7 @@ const Quiz = Type.Object({
   authorId: Type.String()
 });
 
-const createQuizSchema: FastifySchema = {
+  const createQuizSchema: FastifySchema = {
   description: 'Create a new quiz',
   tags: ['quiz'],
   body: Type.Pick(Quiz, [
@@ -137,37 +138,44 @@ const getRoundsByQuizIdSchema: FastifySchema = {
   }
 };
 
-export const getRoundsByQuizIdOpt = (_fastify: FastifyInstance) => ({
+export const getRoundsByQuizIdOpt = (_fastify: QuizAppFastifyInstance) => ({
   schema: getRoundsByQuizIdSchema,
+  preHandler: [_fastify.authenticate],
   handler: getRoundsByQuizId
 });
 
-export const createQuizOpt = (_fastify: FastifyInstance) => ({
+export const createQuizOpt = (_fastify: QuizAppFastifyInstance) => ({
   schema: createQuizSchema,
+  preHandler: [_fastify.authenticate],
   handler: createQuiz
 });
 
-export const getQuizByIdOpt = (_fastify: FastifyInstance) => ({
+export const getQuizByIdOpt = (_fastify: QuizAppFastifyInstance) => ({
   schema: getQuizByIdSchema,
+  preHandler: [_fastify.authenticate],
   handler: getQuizById
 });
 
-export const getAllQuizzesOpt = (_fastify: FastifyInstance) => ({
+export const getAllQuizzesOpt = (_fastify: QuizAppFastifyInstance) => ({
   schema: getAllQuizzesSchema,
+  preHandler: [_fastify.authenticate],
   handler: getAllQuizzes
 });
 
-export const getMyQuizzesOpt = (_fastify: FastifyInstance) => ({
+export const getMyQuizzesOpt = (_fastify: QuizAppFastifyInstance) => ({
   schema: getAllQuizzesSchema,
+  preHandler: [_fastify.authenticate],
   handler: getUserQuizzes
 });
 
-export const updateQuizOpt = (_fastify: FastifyInstance) => ({
+export const updateQuizOpt = (_fastify: QuizAppFastifyInstance) => ({
   schema: updateQuizSchema,
+  preHandler: [_fastify.authenticate],
   handler: updateQuiz
 });
 
-export const deleteQuizOpt = (_fastify: FastifyInstance) => ({
+export const deleteQuizOpt = (_fastify: QuizAppFastifyInstance) => ({
   schema: deleteQuizSchema,
+  preHandler: [_fastify.authenticate],
   handler: deleteQuiz
 });
