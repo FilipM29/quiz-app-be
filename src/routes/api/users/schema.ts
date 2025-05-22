@@ -7,6 +7,7 @@ import {
   updateUser,
   deleteUser
 } from './handler';
+import {QuizAppFastifyInstance} from "~/models/fastify";
 
 // User schema
 export const User = Type.Object({
@@ -97,22 +98,26 @@ export const createUserOpt = (_fastify: FastifyInstance) => ({
   handler: createUser
 });
 
-export const getUserByIdOpt = (_fastify: FastifyInstance) => ({
+export const getUserByIdOpt = (_fastify: QuizAppFastifyInstance) => ({
   schema: getUserByIdSchema,
+  preHandler: [_fastify.authenticate],
   handler: getUserById
 });
 
-export const getAllUsersOpt = (_fastify: FastifyInstance) => ({
+export const getAllUsersOpt = (_fastify: QuizAppFastifyInstance) => ({
   schema: getAllUsersSchema,
+    preHandler: [_fastify.authenticate],
   handler: getAllUsers
 });
 
-export const updateUserOpt = (_fastify: FastifyInstance) => ({
+export const updateUserOpt = (_fastify: QuizAppFastifyInstance) => ({
   schema: updateUserSchema,
+    preHandler: [_fastify.authenticate],
   handler: updateUser
 });
 
-export const deleteUserOpt = (_fastify: FastifyInstance) => ({
+export const deleteUserOpt = (_fastify: QuizAppFastifyInstance) => ({
   schema: deleteUserSchema,
+    preHandler: [_fastify.authenticate],
   handler: deleteUser
 });

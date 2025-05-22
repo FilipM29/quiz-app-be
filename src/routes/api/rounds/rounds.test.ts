@@ -6,6 +6,9 @@ let server: FastifyInstance;
 let quizId: string;
 let roundId: string;
 let user: User;
+const testHeader = {
+  authorization: 'Bearer test',
+}
 
 describe('rounds endpoints', () => {
   beforeAll(async () => {
@@ -50,7 +53,8 @@ describe('rounds endpoints', () => {
         quizId,
         order: 1,
         title: 'Round 1'
-      }
+      },
+      headers: testHeader
     });
 
     expect(response.statusCode).toEqual(201);
@@ -63,7 +67,8 @@ describe('rounds endpoints', () => {
   it('should get a round by ID', async () => {
     const response = await server.inject({
       method: 'GET',
-      url: `/api/rounds/${roundId}`
+      url: `/api/rounds/${roundId}`,
+      headers: testHeader
     });
 
     expect(response.statusCode).toEqual(200);
@@ -75,7 +80,8 @@ describe('rounds endpoints', () => {
   it('should get all rounds by quiz ID', async () => {
     const response = await server.inject({
       method: 'GET',
-      url: `/api/quiz/${quizId}/rounds`
+      url: `/api/quiz/${quizId}/rounds`,
+      headers: testHeader
     });
 
     expect(response.statusCode).toEqual(200);
@@ -91,7 +97,8 @@ describe('rounds endpoints', () => {
       payload: {
         title: 'Updated Round 1',
         order: 2
-      }
+      },
+      headers: testHeader
     });
 
     expect(response.statusCode).toEqual(200);
@@ -103,7 +110,8 @@ describe('rounds endpoints', () => {
   it('should delete a round', async () => {
     const response = await server.inject({
       method: 'DELETE',
-      url: `/api/rounds/${roundId}`
+      url: `/api/rounds/${roundId}`,
+      headers: testHeader
     });
 
     expect(response.statusCode).toEqual(200);

@@ -1,5 +1,5 @@
 import { Type } from '@sinclair/typebox';
-import type { FastifySchema, FastifyInstance } from 'fastify';
+import type { FastifySchema } from 'fastify';
 import {
   createQuestion,
   getQuestionById,
@@ -7,6 +7,7 @@ import {
   deleteQuestion
 } from './handler';
 import { QuestionType } from '@prisma/client';
+import {QuizAppFastifyInstance} from "~/models/fastify";
 
 // Question schema
 export const Question = Type.Object({
@@ -89,22 +90,26 @@ const deleteQuestionSchema: FastifySchema = {
 };
 
 // Export route options
-export const createQuestionOpt = (_fastify: FastifyInstance) => ({
+export const createQuestionOpt = (_fastify: QuizAppFastifyInstance) => ({
   schema: createQuestionSchema,
+  preHandler: [_fastify.authenticate],
   handler: createQuestion
 });
 
-export const getQuestionByIdOpt = (_fastify: FastifyInstance) => ({
+export const getQuestionByIdOpt = (_fastify: QuizAppFastifyInstance) => ({
   schema: getQuestionByIdSchema,
+  preHandler: [_fastify.authenticate],
   handler: getQuestionById
 });
 
-export const updateQuestionOpt = (_fastify: FastifyInstance) => ({
+export const updateQuestionOpt = (_fastify: QuizAppFastifyInstance) => ({
   schema: updateQuestionSchema,
+  preHandler: [_fastify.authenticate],
   handler: updateQuestion
 });
 
-export const deleteQuestionOpt = (_fastify: FastifyInstance) => ({
+export const deleteQuestionOpt = (_fastify: QuizAppFastifyInstance) => ({
   schema: deleteQuestionSchema,
+  preHandler: [_fastify.authenticate],
   handler: deleteQuestion
 });

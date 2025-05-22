@@ -1,5 +1,5 @@
 import { Type } from '@sinclair/typebox';
-import type { FastifySchema, FastifyInstance } from 'fastify';
+import type { FastifySchema } from 'fastify';
 import {
   createRound,
   getRoundById,
@@ -8,6 +8,7 @@ import {
   getQuestionsByRoundId
 } from './handler';
 import { Question } from '../questions/schema';
+import {QuizAppFastifyInstance} from "~/models/fastify";
 
 // Round schema
 const Round = Type.Object({
@@ -88,27 +89,32 @@ const getQuestionsByRoundIdSchema: FastifySchema = {
 };
 
 // Export route options
-export const createRoundOpt = (_fastify: FastifyInstance) => ({
+export const createRoundOpt = (_fastify: QuizAppFastifyInstance) => ({
   schema: createRoundSchema,
+  preHandler: [_fastify.authenticate],
   handler: createRound
 });
 
-export const getRoundByIdOpt = (_fastify: FastifyInstance) => ({
+export const getRoundByIdOpt = (_fastify: QuizAppFastifyInstance) => ({
   schema: getRoundByIdSchema,
+  preHandler: [_fastify.authenticate],
   handler: getRoundById
 });
 
-export const updateRoundOpt = (_fastify: FastifyInstance) => ({
+export const updateRoundOpt = (_fastify: QuizAppFastifyInstance) => ({
   schema: updateRoundSchema,
+    preHandler: [_fastify.authenticate],
   handler: updateRound
 });
 
-export const deleteRoundOpt = (_fastify: FastifyInstance) => ({
+export const deleteRoundOpt = (_fastify: QuizAppFastifyInstance) => ({
   schema: deleteRoundSchema,
+    preHandler: [_fastify.authenticate],
   handler: deleteRound
 });
 
-export const getQuestionsByRoundIdOpt = (_fastify: FastifyInstance) => ({
+export const getQuestionsByRoundIdOpt = (_fastify: QuizAppFastifyInstance) => ({
   schema: getQuestionsByRoundIdSchema,
+    preHandler: [_fastify.authenticate],
   handler: getQuestionsByRoundId
 });
