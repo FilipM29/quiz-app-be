@@ -9,6 +9,7 @@ import fastifyRawBody from 'fastify-raw-body';
 import { join } from 'path';
 import { rawBodyOptions, swaggerOptions } from '~/config';
 import { errorHandler } from '~/utils/error';
+import {firebaseAuthPlugin} from "~/plugins/firebaseAuth";
 
 export default async function createServer(options?: FastifyServerOptions) {
   const server = fastify(options);
@@ -17,6 +18,7 @@ export default async function createServer(options?: FastifyServerOptions) {
   await server.register(fastifyAuth);
   await server.register(fastifyCors);
   await server.register(fastifyMultipart);
+  await server.register(firebaseAuthPlugin);
   await server.register(fastifyRawBody, rawBodyOptions);
   await server.register(fastifySwagger, swaggerOptions);
   await server.register(fastifySwaggerUi, {
