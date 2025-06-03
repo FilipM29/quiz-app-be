@@ -6,6 +6,9 @@ let server: FastifyInstance;
 let roundId: string;
 let questionId: string;
 let user: User;
+const testHeader = {
+  authorization: 'Bearer test',
+}
 
 describe('questions endpoints', () => {
   beforeAll(async () => {
@@ -61,7 +64,8 @@ describe('questions endpoints', () => {
         answer: '4',
         acceptableAnswers: ['four', '4'],
         options: ['1', '2', '3', '4']
-      }
+      },
+      headers: testHeader
     });
 
     expect(response.statusCode).toEqual(201);
@@ -74,7 +78,8 @@ describe('questions endpoints', () => {
   it('should get a question by ID', async () => {
     const response = await server.inject({
       method: 'GET',
-      url: `/api/questions/${questionId}`
+      url: `/api/questions/${questionId}`,
+      headers: testHeader
     });
 
     expect(response.statusCode).toEqual(200);
@@ -86,7 +91,8 @@ describe('questions endpoints', () => {
   it('should get all questions by round ID', async () => {
     const response = await server.inject({
       method: 'GET',
-      url: `/api/rounds/${roundId}/questions`
+      url: `/api/rounds/${roundId}/questions`,
+      headers: testHeader
     });
 
     expect(response.statusCode).toEqual(200);
@@ -105,7 +111,8 @@ describe('questions endpoints', () => {
         type: 'OPTIONS',
         answer: 'Updated Answer',
         acceptableAnswers: ['updated answer']
-      }
+      },
+      headers: testHeader
     });
 
     expect(response.statusCode).toEqual(200);
@@ -118,7 +125,8 @@ describe('questions endpoints', () => {
   it('should delete a question', async () => {
     const response = await server.inject({
       method: 'DELETE',
-      url: `/api/questions/${questionId}`
+      url: `/api/questions/${questionId}`,
+      headers: testHeader
     });
 
     expect(response.statusCode).toEqual(200);

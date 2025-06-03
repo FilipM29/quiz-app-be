@@ -6,6 +6,9 @@ let server: FastifyInstance;
 let user: User;
 let currentQuizId: string;
 const quizTitle = 'TestQuiz';
+const testHeader = {
+  authorization: 'Bearer test',
+}
 
 describe('quiz endpoints', () => {
   beforeAll(async () => {
@@ -38,7 +41,8 @@ describe('quiz endpoints', () => {
         quizVisibility: 'PUBLIC',
         numOfRounds: 5,
         authorId: user.id
-      }
+      },
+      headers: testHeader
     });
 
     expect(response.statusCode).toEqual(201);
@@ -52,7 +56,8 @@ describe('quiz endpoints', () => {
   it('should get a quiz by ID', async () => {
     const response = await server.inject({
       method: 'GET',
-      url: `/api/quiz/${currentQuizId}`
+      url: `/api/quiz/${currentQuizId}`,
+      headers: testHeader
     });
 
     expect(response.statusCode).toEqual(200);
@@ -64,7 +69,8 @@ describe('quiz endpoints', () => {
   it('should get all quizzes', async () => {
     const response = await server.inject({
       method: 'GET',
-      url: '/api/quiz'
+      url: '/api/quiz',
+      headers: testHeader
     });
 
     expect(response.statusCode).toEqual(200);
@@ -84,7 +90,8 @@ describe('quiz endpoints', () => {
           description: 'Updated description',
           quizType: QuizType.JEOPARDY
         }
-      }
+      },
+      headers: testHeader
     });
 
     expect(response.statusCode).toEqual(200);
@@ -98,7 +105,8 @@ describe('quiz endpoints', () => {
   it('should delete a quiz', async () => {
     const response = await server.inject({
       method: 'DELETE',
-      url: `/api/quiz/${currentQuizId}`
+      url: `/api/quiz/${currentQuizId}`,
+      headers: testHeader
     });
 
     expect(response.statusCode).toEqual(200);
@@ -109,7 +117,8 @@ describe('quiz endpoints', () => {
   it('should get rounds by quiz ID', async () => {
     const response = await server.inject({
       method: 'GET',
-      url: `/api/quiz/${currentQuizId}/rounds`
+      url: `/api/quiz/${currentQuizId}/rounds`,
+      headers: testHeader
     });
 
     expect(response.statusCode).toEqual(200);

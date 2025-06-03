@@ -7,6 +7,9 @@ const firebaseId = 'testFirebaseId';
 const firstName = 'testFirstName';
 const lastName = 'testLastName';
 const email = 'test@Email.com';
+const testHeader = {
+  authorization: 'Bearer test',
+}
 
 describe('users endpoints', () => {
   beforeAll(async () => {
@@ -35,7 +38,8 @@ describe('users endpoints', () => {
   it('should get a user by ID (GET /users/{id})', async () => {
     const response = await server.inject({
       method: 'GET',
-      url: `/api/users/${userId}`
+      url: `/api/users/${userId}`,
+      headers: testHeader
     });
 
     expect(response.statusCode).toEqual(200);
@@ -47,7 +51,8 @@ describe('users endpoints', () => {
   it('should get all users (GET /users)', async () => {
     const response = await server.inject({
       method: 'GET',
-      url: '/api/users'
+      url: '/api/users',
+      headers: testHeader
     });
 
     expect(response.statusCode).toEqual(200);
@@ -63,7 +68,8 @@ describe('users endpoints', () => {
       url: `/api/users/${userId}`,
       payload: {
         email: updatedEmail
-      }
+      },
+      headers: testHeader
     });
 
     expect(response.statusCode).toEqual(200);
@@ -75,7 +81,8 @@ describe('users endpoints', () => {
   it('should delete a user (DELETE /users)', async () => {
     const response = await server.inject({
       method: 'DELETE',
-      url: `/api/users/${userId}`
+      url: `/api/users/${userId}`,
+      headers: testHeader
     });
 
     expect(response.statusCode).toEqual(200);
@@ -85,7 +92,8 @@ describe('users endpoints', () => {
     // Verify the user no longer exists
     const getResponse = await server.inject({
       method: 'GET',
-      url: `/api/users/${userId}`
+      url: `/api/users/${userId}`,
+      headers: testHeader
     });
     expect(getResponse.statusCode).toEqual(404);
   });
