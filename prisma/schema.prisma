@@ -41,6 +41,7 @@ enum QuizStatus {
 enum QuizVisibility {
   PUBLIC
   PRIVATE
+  UNLISTED
 
   @@map("quiz_visibility")
 }
@@ -60,6 +61,51 @@ enum Role {
   @@map("role")
 }
 
+enum Category {
+  SPORT
+  GEOGRAPHY
+  SCIENCE
+  HISTORY
+  POP_CULTURE
+  ENTERTAINMENT
+  TECHNOLOGY
+  LITERATURE
+  FOOD
+  BUSINESS
+  HEALTH
+  NATURE
+  MATHEMATICS
+  LANGUAGES
+  CURRENT_EVENTS
+  OTHER
+
+  @@map("category")
+}
+
+enum SessionStatus {
+  WAITING
+  ACTIVE
+  FINISHED
+
+  @@map("session_status")
+}
+
+enum ScoringStatus {
+  PENDING
+  AUTO_SCORED
+  MANUALLY_SCORED
+
+  @@map("scoring_status")
+}
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+
+  @@map("difficulty")
+}
+
 model Quiz {
     id          String      @id @default(cuid())
     title       String
@@ -71,18 +117,28 @@ model Quiz {
     quizType        QuizType       @map("quiz_type")
     quizStatus      QuizStatus     @map("quiz_status")
     quizVisibility  QuizVisibility @map("quiz_visibility")
+    category        Category       @default(OTHER)
+    difficulty      Difficulty     @default(EASY)
 
     numOfRounds Int         @map("num_of_rounds")
     numOfPlays  Int         @default(0) @map("num_of_plays")
     rating      Int         @default(0)
     author      User        @relation("my_quizes", fields: [authorId], references: [id], onDelete: Cascade, map: "quiz_author_fkey")
     authorId    String      @map("author_id")
-    
-    followers   User[]      @relation("liked_quizes")
-    ratings     Rating[]    @relation("quiz_ratings")
-    rounds      QuizRound[] @relation("quiz_rounds")
-    results     QuizPlay[]  @relation("quiz_results")
 
+    followers    User[]         @relation("liked_quizes")
+    ratings      Rating[]       @relation("quiz_ratings")
+    rounds       QuizRound[]    @relation("quiz_rounds")
+    results      QuizPlay[]     @relation("quiz_results")
+    playSessions PlaySession[]  @relation("quiz_play_sessions")
+
+    @@index([authorId], map: "quiz_author_id_idx")
+    @@index([quizStatus, quizVisibility], map: "quiz_status_visibility_idx")
+    @@index([createdAt], map: "quiz_created_at_idx")
+    @@index([rating], map: "quiz_rating_idx")
+    @@index([category], map: "quiz_category_idx")
+    @@index([difficulty], map: "quiz_difficulty_idx")
+    @@index([category, quizStatus, quizVisibility], map: "quiz_category_status_visibility_idx")
     @@map("quiz")
 }
 
@@ -95,13 +151,19 @@ model User {
   createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz
   updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz
 
-  quizes       Quiz[]     @relation("my_quizes")
-  likedQuizes  Quiz[]     @relation("liked_quizes")
-  followedBy   User[]     @relation("followers")
-  following    User[]     @relation("followers")
-  ratings      Rating[]   @relation("my_ratings")
-  playedQuizes QuizPlay[] @relation("my_played_quizes")
+  quizes         Quiz[]         @relation("my_quizes")
+  likedQuizes    Quiz[]         @relation("liked_quizes")
+  followedBy     User[]         @relation("followers")
+  following      User[]         @relation("followers")
+  ratings        Rating[]       @relation("my_ratings")
+  playedQuizes   QuizPlay[]     @relation("my_played_quizes")
+  hostedSessions PlaySession[]  @relation("hosted_sessions")
+  sessionPlayers SessionPlayer[] @relation("user_session_players")
+  playerAnswers  PlayerAnswer[] @relation("user_player_answers")
+  scoredAnswers  PlayerAnswer[] @relation("teacher_scored_answers")
 
+  @@index([email], map: "user_email_idx")
+  @@index([createdAt], map: "user_created_at_idx")
   @@map("user")
 }
 
@@ -126,23 +188,28 @@ model QuizRound {
   quizId    String
   questions Question[] @relation("round_questions")
 
+  @@index([quizId], map: "quiz_round_quiz_id_idx")
+  @@index([quizId, order], map: "quiz_round_quiz_id_order_idx")
   @@map("quiz_round")
 }
 
 model Question {
-  id                String        @id @default(cuid())
-  type              QuestionType
-  value             Int
-  pictureUrl        String?       @map("picture_url")
-  text              String
-  answer            String
-  acceptableAnswers String[]
-  options           AnswerOption[] @relation("answer_options")
-  range             Int?  
-  round             QuizRound     @relation("round_questions", fields: [roundId], references: [id], onDelete: Cascade, map: "question_quiz_round_fkey")
-  roundId           String
+  id                  String        @id @default(cuid())
+  type                QuestionType
+  value               Int
+  pictureUrl          String?       @map("picture_url")
+  text                String
+  answer              String
+  acceptableAnswers   String[]
+  options             AnswerOption[] @relation("answer_options")
+  range               Int?
+  round               QuizRound     @relation("round_questions", fields: [roundId], references: [id], onDelete: Cascade, map: "question_quiz_round_fkey")
+  roundId             String
+  playerAnswers       PlayerAnswer[] @relation("question_answers")
 
-  @@map("quiestion")
+  @@index([roundId], map: "question_round_id_idx")
+  @@index([type], map: "question_type_idx")
+  @@map("question")
 }
 
 model AnswerOption {
@@ -165,4 +232,81 @@ model QuizPlay {
   quizId String
 
   @@map("quiz_play")
+}
+
+model PlaySession {
+  id               String         @id @default(cuid())
+  quiz             Quiz           @relation("quiz_play_sessions", fields: [quizId], references: [id], onDelete: Cascade, map: "play_session_quiz_fkey")
+  quizId           String         @map("quiz_id")
+  host             User           @relation("hosted_sessions", fields: [hostId], references: [id], onDelete: Cascade, map: "play_session_host_fkey")
+  hostId           String         @map("host_id")
+  playType         PlayType       @map("play_type")
+  status           SessionStatus  @default(WAITING)
+  currentRound     Int            @default(0) @map("current_round")
+  currentQuestion  Int            @default(0) @map("current_question")
+  maxPlayers       Int            @default(10) @map("max_players")
+  timePerQuestion  Int            @default(30) @map("time_per_question")
+  showCorrectAnswer Boolean       @default(true) @map("show_correct_answer")
+  allowLateJoin    Boolean        @default(false) @map("allow_late_join")
+  randomizeQuestions Boolean      @default(false) @map("randomize_questions")
+  createdAt        DateTime       @default(now()) @map("created_at") @db.Timestamptz
+  startedAt        DateTime?      @map("started_at") @db.Timestamptz
+  finishedAt       DateTime?      @map("finished_at") @db.Timestamptz
+
+  players          SessionPlayer[] @relation("session_players")
+  playerAnswers    PlayerAnswer[]  @relation("session_answers")
+
+  @@index([quizId], map: "play_session_quiz_id_idx")
+  @@index([hostId], map: "play_session_host_id_idx")
+  @@index([status], map: "play_session_status_idx")
+  @@index([playType], map: "play_session_play_type_idx")
+  @@index([createdAt], map: "play_session_created_at_idx")
+  @@map("play_session")
+}
+
+model SessionPlayer {
+  id               String      @id @default(cuid())
+  playSession      PlaySession @relation("session_players", fields: [playSessionId], references: [id], onDelete: Cascade, map: "session_player_session_fkey")
+  playSessionId    String      @map("play_session_id")
+  user             User?       @relation("user_session_players", fields: [userId], references: [id], onDelete: Cascade, map: "session_player_user_fkey")
+  userId           String?     @map("user_id")
+  guestIdentifier  String?     @map("guest_identifier")
+  username         String
+  score            Int         @default(0)
+  isGuest          Boolean     @default(false) @map("is_guest")
+  isReady          Boolean     @default(false) @map("is_ready")
+  joinedAt         DateTime    @default(now()) @map("joined_at") @db.Timestamptz
+
+  @@index([playSessionId], map: "session_player_session_id_idx")
+  @@index([userId], map: "session_player_user_id_idx")
+  @@index([guestIdentifier], map: "session_player_guest_id_idx")
+  @@map("session_player")
+}
+
+model PlayerAnswer {
+  id              String         @id @default(cuid())
+  playSession     PlaySession    @relation("session_answers", fields: [playSessionId], references: [id], onDelete: Cascade, map: "player_answer_session_fkey")
+  playSessionId   String         @map("play_session_id")
+  question        Question       @relation("question_answers", fields: [questionId], references: [id], onDelete: Cascade, map: "player_answer_question_fkey")
+  questionId      String         @map("question_id")
+  user            User?          @relation("user_player_answers", fields: [userId], references: [id], onDelete: Cascade, map: "player_answer_user_fkey")
+  userId          String?        @map("user_id")
+  guestIdentifier String?        @map("guest_identifier")
+  answer          String
+  submittedAt     DateTime       @default(now()) @map("submitted_at") @db.Timestamptz
+  scoringStatus   ScoringStatus  @default(PENDING) @map("scoring_status")
+  isCorrect       Boolean?       @map("is_correct")
+  points          Int?
+  timeToAnswer    Int?           @map("time_to_answer")
+  teacherFeedback String?        @map("teacher_feedback") @db.Text
+  scoredBy        User?          @relation("teacher_scored_answers", fields: [scoredById], references: [id], onDelete: SetNull, map: "player_answer_scorer_fkey")
+  scoredById      String?        @map("scored_by_id")
+  scoredAt        DateTime?      @map("scored_at") @db.Timestamptz
+
+  @@index([playSessionId], map: "player_answer_session_id_idx")
+  @@index([questionId], map: "player_answer_question_id_idx")
+  @@index([userId], map: "player_answer_user_id_idx")
+  @@index([scoringStatus], map: "player_answer_scoring_status_idx")
+  @@index([playSessionId, questionId], map: "player_answer_session_question_idx")
+  @@map("player_answer")
 }

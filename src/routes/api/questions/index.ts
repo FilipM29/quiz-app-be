@@ -7,10 +7,26 @@ import {
 } from './schema';
 
 const questionsRoutes: FastifyPluginCallback = (fastify, _opts, done) => {
-  fastify.post('', createQuestionOpt(fastify));
-  fastify.get('/:id', getQuestionByIdOpt(fastify));
-  fastify.put('/:id', updateQuestionOpt(fastify));
-  fastify.delete('/:id', deleteQuestionOpt(fastify));
+  // POST /questions - Create a question (requires authentication and quiz ownership)
+  fastify.post('', {
+    preHandler: [fastify.requireAuth],
+    ...createQuestionOpt()
+  });
+
+  // GET /questions/:id - Get a question by ID (public for quiz taking)
+  fastify.get('/:id', getQuestionByIdOpt());
+
+  // PUT /questions/:id - Update a question (requires authentication and quiz ownership)
+  fastify.put('/:id', {
+    preHandler: [fastify.requireAuth],
+    ...updateQuestionOpt()
+  });
+
+  // DELETE /questions/:id - Delete a question (requires authentication and quiz ownership)
+  fastify.delete('/:id', {
+    preHandler: [fastify.requireAuth],
+    ...deleteQuestionOpt()
+  });
 
   done();
 };
