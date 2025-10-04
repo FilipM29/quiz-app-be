@@ -1,5 +1,5 @@
 import { Type } from '@sinclair/typebox';
-import type { FastifySchema, FastifyInstance } from 'fastify';
+import type { FastifySchema } from 'fastify';
 import {
   createRound,
   getRoundById,
@@ -7,7 +7,20 @@ import {
   deleteRound,
   getQuestionsByRoundId
 } from './handler';
-import { Question } from '../questions/schema';
+import { QuestionType } from '@prisma/client';
+
+// Inline Question schema with string[] options for round responses
+const QuestionResponse = Type.Object({
+  id: Type.String(),
+  roundId: Type.String(),
+  text: Type.String(),
+  value: Type.Number(),
+  type: Type.Enum(QuestionType),
+  answer: Type.String(),
+  acceptableAnswers: Type.Optional(Type.Array(Type.String())),
+  options: Type.Optional(Type.Array(Type.String())),
+  range: Type.Optional(Type.Number())
+});
 
 // Round schema
 const Round = Type.Object({
@@ -83,32 +96,32 @@ const getQuestionsByRoundIdSchema: FastifySchema = {
     id: Type.String()
   }),
   response: {
-    200: Type.Array(Question)
+    200: Type.Array(QuestionResponse)
   }
 };
 
 // Export route options
-export const createRoundOpt = (_fastify: FastifyInstance) => ({
+export const createRoundOpt = () => ({
   schema: createRoundSchema,
   handler: createRound
 });
 
-export const getRoundByIdOpt = (_fastify: FastifyInstance) => ({
+export const getRoundByIdOpt = () => ({
   schema: getRoundByIdSchema,
   handler: getRoundById
 });
 
-export const updateRoundOpt = (_fastify: FastifyInstance) => ({
+export const updateRoundOpt = () => ({
   schema: updateRoundSchema,
   handler: updateRound
 });
 
-export const deleteRoundOpt = (_fastify: FastifyInstance) => ({
+export const deleteRoundOpt = () => ({
   schema: deleteRoundSchema,
   handler: deleteRound
 });
 
-export const getQuestionsByRoundIdOpt = (_fastify: FastifyInstance) => ({
+export const getQuestionsByRoundIdOpt = () => ({
   schema: getQuestionsByRoundIdSchema,
   handler: getQuestionsByRoundId
 });

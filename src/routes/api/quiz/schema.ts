@@ -1,10 +1,15 @@
-﻿import { QuizStatus, QuizType, QuizVisibility } from '@prisma/client';
+﻿import {
+  QuizStatus,
+  QuizType,
+  QuizVisibility,
+  Category,
+  Difficulty
+} from '@prisma/client';
 import { Type } from '@sinclair/typebox';
-import { FastifyInstance, FastifySchema } from 'fastify';
+import type { FastifySchema } from 'fastify';
 import {
   createQuiz,
   deleteQuiz,
-  getAllQuizzes,
   getUserQuizzes,
   getQuizById,
   getRoundsByQuizId,
@@ -13,21 +18,23 @@ import {
 import { User } from '../users/schema';
 
 const Quiz = Type.Object({
-  id: Type.String(),
-  title: Type.String(),
-  description: Type.String(),
-  pictureUrl: Type.Optional(Type.String()),
+  id: Type.String({ minLength: 1 }),
+  title: Type.String({ minLength: 1, maxLength: 200 }),
+  description: Type.String({ minLength: 1, maxLength: 1000 }),
+  pictureUrl: Type.Optional(Type.String({ format: 'uri' })),
   quizVisibility: Type.Enum(QuizVisibility, {
     examples: Object.keys(QuizVisibility)
   }),
+  category: Type.Enum(Category, { examples: Object.keys(Category) }),
+  difficulty: Type.Enum(Difficulty, { examples: Object.keys(Difficulty) }),
   createdAt: Type.String({ format: 'date-time' }),
   updatedAt: Type.String({ format: 'date-time' }),
-  numOfRounds: Type.Number(),
-  numOfPlays: Type.Number(),
+  numOfRounds: Type.Number({ minimum: 1, maximum: 50 }),
+  numOfPlays: Type.Number({ minimum: 0 }),
   quizType: Type.Enum(QuizType, { examples: Object.keys(QuizType) }),
   quizStatus: Type.Enum(QuizStatus, { examples: Object.keys(QuizStatus) }),
-  rating: Type.Number(),
-  authorId: Type.String()
+  rating: Type.Number({ minimum: 0, maximum: 5 }),
+  authorId: Type.String({ minLength: 1 })
 });
 
 const createQuizSchema: FastifySchema = {
@@ -38,9 +45,10 @@ const createQuizSchema: FastifySchema = {
     'quizType',
     'quizStatus',
     'numOfRounds',
-    'authorId',
     'description',
     'quizVisibility',
+    'category',
+    'difficulty',
     'pictureUrl'
   ]),
   response: {
@@ -52,7 +60,11 @@ const getQuizByIdSchema: FastifySchema = {
   description: 'Get a quiz by ID',
   tags: ['quiz'],
   params: Type.Object({
-    id: Type.String()
+    id: Type.String({
+      minLength: 1,
+      maxLength: 50,
+      pattern: '^[a-zA-Z0-9_-]+$'
+    })
   }),
   response: {
     200: Type.Intersect([
@@ -75,9 +87,12 @@ const getQuizByIdSchema: FastifySchema = {
   }
 };
 
-const getAllQuizzesSchema: FastifySchema = {
-  description: 'Get all quizzes',
+const getUserQuizzesSchema: FastifySchema = {
+  description: 'Get all quizzes for a specific user',
   tags: ['quiz'],
+  params: Type.Object({
+    id: Type.String()
+  }),
   response: {
     200: Type.Array(Quiz)
   }
@@ -87,11 +102,25 @@ const updateQuizSchema: FastifySchema = {
   description: 'Update a quiz by ID',
   tags: ['quiz'],
   params: Type.Object({
-    id: Type.String()
+    id: Type.String({
+      minLength: 1,
+      maxLength: 50,
+      pattern: '^[a-zA-Z0-9_-]+$'
+    })
   }),
-  body: Type.Object({
-    data: Type.Partial(Type.Omit(Quiz, ['id']))
-  }),
+  body: Type.Partial(
+    Type.Pick(Quiz, [
+      'title',
+      'description',
+      'pictureUrl',
+      'quizVisibility',
+      'category',
+      'difficulty',
+      'numOfRounds',
+      'quizType',
+      'quizStatus'
+    ])
+  ),
   response: {
     200: Quiz,
     404: Type.Object({
@@ -104,7 +133,11 @@ const deleteQuizSchema: FastifySchema = {
   description: 'Delete a quiz by ID',
   tags: ['quiz'],
   params: Type.Object({
-    id: Type.String()
+    id: Type.String({
+      minLength: 1,
+      maxLength: 50,
+      pattern: '^[a-zA-Z0-9_-]+$'
+    })
   }),
   response: {
     200: Type.Object({
@@ -120,7 +153,11 @@ const getRoundsByQuizIdSchema: FastifySchema = {
   description: 'Get all rounds for a specific quiz by quiz ID',
   tags: ['quizzes'],
   params: Type.Object({
-    id: Type.String()
+    id: Type.String({
+      minLength: 1,
+      maxLength: 50,
+      pattern: '^[a-zA-Z0-9_-]+$'
+    })
   }),
   response: {
     200: Type.Array(
@@ -137,37 +174,32 @@ const getRoundsByQuizIdSchema: FastifySchema = {
   }
 };
 
-export const getRoundsByQuizIdOpt = (_fastify: FastifyInstance) => ({
+export const getRoundsByQuizIdOpt = () => ({
   schema: getRoundsByQuizIdSchema,
   handler: getRoundsByQuizId
 });
 
-export const createQuizOpt = (_fastify: FastifyInstance) => ({
+export const createQuizOpt = () => ({
   schema: createQuizSchema,
   handler: createQuiz
 });
 
-export const getQuizByIdOpt = (_fastify: FastifyInstance) => ({
+export const getQuizByIdOpt = () => ({
   schema: getQuizByIdSchema,
   handler: getQuizById
 });
 
-export const getAllQuizzesOpt = (_fastify: FastifyInstance) => ({
-  schema: getAllQuizzesSchema,
-  handler: getAllQuizzes
-});
-
-export const getMyQuizzesOpt = (_fastify: FastifyInstance) => ({
-  schema: getAllQuizzesSchema,
+export const getMyQuizzesOpt = () => ({
+  schema: getUserQuizzesSchema,
   handler: getUserQuizzes
 });
 
-export const updateQuizOpt = (_fastify: FastifyInstance) => ({
+export const updateQuizOpt = () => ({
   schema: updateQuizSchema,
   handler: updateQuiz
 });
 
-export const deleteQuizOpt = (_fastify: FastifyInstance) => ({
+export const deleteQuizOpt = () => ({
   schema: deleteQuizSchema,
   handler: deleteQuiz
 });

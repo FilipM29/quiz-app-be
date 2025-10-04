@@ -1,6 +1,9 @@
+jest.mock('firebase-admin');
+
 import createServer from '~/server';
 import type { FastifyInstance } from 'fastify';
-import { User } from '@prisma/client';
+import type { User } from '@prisma/client';
+import { createAuthHeaders } from '~/utils/test-helpers';
 
 let server: FastifyInstance;
 let roundId: string;
@@ -53,6 +56,7 @@ describe('questions endpoints', () => {
     const response = await server.inject({
       method: 'POST',
       url: '/api/questions',
+      headers: createAuthHeaders(user.firebaseId),
       payload: {
         roundId,
         text: 'What is 2 + 2?',
@@ -99,6 +103,7 @@ describe('questions endpoints', () => {
     const response = await server.inject({
       method: 'PUT',
       url: `/api/questions/${questionId}`,
+      headers: createAuthHeaders(user.firebaseId),
       payload: {
         text: 'Updated Question',
         value: 20,
@@ -118,11 +123,99 @@ describe('questions endpoints', () => {
   it('should delete a question', async () => {
     const response = await server.inject({
       method: 'DELETE',
-      url: `/api/questions/${questionId}`
+      url: `/api/questions/${questionId}`,
+      headers: createAuthHeaders(user.firebaseId)
     });
 
     expect(response.statusCode).toEqual(200);
     const body = JSON.parse(response.body);
     expect(body.message).toEqual('Question deleted!');
+  });
+
+  it('should fail to create question without authentication', async () => {
+    const response = await server.inject({
+      method: 'POST',
+      url: '/api/questions',
+      payload: {
+        roundId,
+        text: 'Unauthorized Question',
+        value: 10,
+        type: 'EXACT',
+        answer: '42',
+        acceptableAnswers: ['42'],
+        options: ['1', '2', '42', '4']
+      }
+    });
+
+    expect(response.statusCode).toEqual(401);
+  });
+
+  it('should fail to update question without authentication', async () => {
+    // Create a new question first
+    const createResponse = await server.inject({
+      method: 'POST',
+      url: '/api/questions',
+      headers: createAuthHeaders(user.firebaseId),
+      payload: {
+        roundId,
+        text: 'Test Question for Update',
+        value: 10,
+        type: 'EXACT',
+        answer: '5',
+        acceptableAnswers: ['5'],
+        options: ['1', '2', '5', '4']
+      }
+    });
+    const newQuestionId = JSON.parse(createResponse.body).id;
+
+    const response = await server.inject({
+      method: 'PUT',
+      url: `/api/questions/${newQuestionId}`,
+      payload: {
+        text: 'Unauthorized Update'
+      }
+    });
+
+    expect(response.statusCode).toEqual(401);
+
+    // Clean up
+    await server.inject({
+      method: 'DELETE',
+      url: `/api/questions/${newQuestionId}`,
+      headers: createAuthHeaders(user.firebaseId)
+    });
+  });
+
+  it('should fail to delete question without authentication', async () => {
+    // Create a new question first
+    const createResponse = await server.inject({
+      method: 'POST',
+      url: '/api/questions',
+      headers: createAuthHeaders(user.firebaseId),
+      payload: {
+        roundId,
+        text: 'Test Question for Delete',
+        value: 10,
+        type: 'EXACT',
+        answer: '6',
+        acceptableAnswers: ['6'],
+        options: ['1', '2', '6', '4']
+      }
+    });
+    const newQuestionId = JSON.parse(createResponse.body).id;
+
+    const response = await server.inject({
+      method: 'DELETE',
+      url: `/api/questions/${newQuestionId}`
+    });
+
+    expect(response.statusCode).toEqual(401);
+
+    // Clean up
+    await server.inject({
+      method: 'DELETE',
+      url: `/api/questions/${newQuestionId}`,
+      headers: createAuthHeaders(user.firebaseId)
+    });
   });
 });

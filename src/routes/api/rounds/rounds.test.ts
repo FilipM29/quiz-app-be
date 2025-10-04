@@ -1,6 +1,9 @@
+jest.mock('firebase-admin');
+
 import createServer from '~/server';
 import type { FastifyInstance } from 'fastify';
-import { User } from '@prisma/client';
+import type { User } from '@prisma/client';
+import { createAuthHeaders } from '~/utils/test-helpers';
 
 let server: FastifyInstance;
 let quizId: string;
@@ -46,6 +49,7 @@ describe('rounds endpoints', () => {
     const response = await server.inject({
       method: 'POST',
       url: '/api/rounds',
+      headers: createAuthHeaders(user.firebaseId),
       payload: {
         quizId,
         order: 1,
@@ -88,6 +92,7 @@ describe('rounds endpoints', () => {
     const response = await server.inject({
       method: 'PUT',
       url: `/api/rounds/${roundId}`,
+      headers: createAuthHeaders(user.firebaseId),
       payload: {
         title: 'Updated Round 1',
         order: 2
@@ -103,11 +108,88 @@ describe('rounds endpoints', () => {
   it('should delete a round', async () => {
     const response = await server.inject({
       method: 'DELETE',
-      url: `/api/rounds/${roundId}`
+      url: `/api/rounds/${roundId}`,
+      headers: createAuthHeaders(user.firebaseId)
     });
 
     expect(response.statusCode).toEqual(200);
     const body = JSON.parse(response.body);
     expect(body.message).toEqual('Round deleted!');
+  });
+
+  it('should fail to create round without authentication', async () => {
+    const response = await server.inject({
+      method: 'POST',
+      url: '/api/rounds',
+      payload: {
+        quizId,
+        order: 3,
+        title: 'Unauthorized Round'
+      }
+    });
+
+    expect(response.statusCode).toEqual(401);
+  });
+
+  it('should fail to update round without authentication', async () => {
+    // Create a new round first
+    const createResponse = await server.inject({
+      method: 'POST',
+      url: '/api/rounds',
+      headers: createAuthHeaders(user.firebaseId),
+      payload: {
+        quizId,
+        order: 4,
+        title: 'Test Round for Update'
+      }
+    });
+    const newRoundId = JSON.parse(createResponse.body).id;
+
+    const response = await server.inject({
+      method: 'PUT',
+      url: `/api/rounds/${newRoundId}`,
+      payload: {
+        title: 'Unauthorized Update',
+        order: 1
+      }
+    });
+
+    expect(response.statusCode).toEqual(401);
+
+    // Clean up
+    await server.inject({
+      method: 'DELETE',
+      url: `/api/rounds/${newRoundId}`,
+      headers: createAuthHeaders(user.firebaseId)
+    });
+  });
+
+  it('should fail to delete round without authentication', async () => {
+    // Create a new round first
+    const createResponse = await server.inject({
+      method: 'POST',
+      url: '/api/rounds',
+      headers: createAuthHeaders(user.firebaseId),
+      payload: {
+        quizId,
+        order: 5,
+        title: 'Test Round for Delete'
+      }
+    });
+    const newRoundId = JSON.parse(createResponse.body).id;
+
+    const response = await server.inject({
+      method: 'DELETE',
+      url: `/api/rounds/${newRoundId}`
+    });
+
+    expect(response.statusCode).toEqual(401);
+
+    // Clean up
+    await server.inject({
+      method: 'DELETE',
+      url: `/api/rounds/${newRoundId}`,
+      headers: createAuthHeaders(user.firebaseId)
+    });
   });
 });
