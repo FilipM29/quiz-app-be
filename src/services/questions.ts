@@ -1,7 +1,7 @@
 import { prisma } from '~/utils';
 import { NotFoundError } from '~/models';
 import { messages } from '~/resources';
-import { QuestionType } from '@prisma/client';
+import type { QuestionType } from '@prisma/client';
 
 export class QuestionsService {
   static async createQuestion(
@@ -12,7 +12,8 @@ export class QuestionsService {
     answer: string,
     acceptableAnswers?: string[],
     range?: number | undefined,
-    options?: string[]
+    options?: string[],
+    pictureUrl?: string
   ) {
     const optionsExists = options && options.length > 0;
 
@@ -24,10 +25,11 @@ export class QuestionsService {
         type,
         answer,
         acceptableAnswers,
-        range
+        range,
+        pictureUrl
       },
       include: {
-        options: optionsExists
+        options: true
       }
     });
 
@@ -37,6 +39,14 @@ export class QuestionsService {
           text: option,
           questionId: question.id
         }))
+      });
+
+      // Re-fetch the question with options to return the complete object
+      return prisma.question.findUniqueOrThrow({
+        where: { id: question.id },
+        include: {
+          options: true
+        }
       });
     }
     return question;
@@ -75,7 +85,8 @@ export class QuestionsService {
     answer?: string,
     acceptableAnswers?: string[],
     range?: number,
-    options?: string[]
+    options?: string[],
+    pictureUrl?: string
   ) {
     const data = {
       ...(text && { text }),
@@ -83,10 +94,11 @@ export class QuestionsService {
       ...(type && { type }),
       ...(answer && { answer }),
       ...(range && { range }),
-      ...(acceptableAnswers && { acceptableAnswers })
+      ...(acceptableAnswers && { acceptableAnswers }),
+      ...(pictureUrl !== undefined && { pictureUrl })
     };
 
-    const question = await prisma.question.update({
+    await prisma.question.update({
       where: { id },
       data
     });
@@ -106,7 +118,13 @@ export class QuestionsService {
       });
     }
 
-    return question;
+    // Always return the question with options included
+    return prisma.question.findUniqueOrThrow({
+      where: { id },
+      include: {
+        options: true
+      }
+    });
   }
 
   static async deleteQuestion(id: string) {

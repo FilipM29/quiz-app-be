@@ -1,5 +1,12 @@
 ﻿import { prisma } from '~/utils';
-import { Quiz, QuizStatus, QuizType, QuizVisibility } from '@prisma/client';
+import {
+  QuizVisibility,
+  type Quiz,
+  type QuizStatus,
+  type QuizType,
+  type Category,
+  type Difficulty
+} from '@prisma/client';
 import { NotFoundError } from '~/models';
 import { messages } from '~/resources';
 
@@ -12,6 +19,8 @@ export class QuizService {
     quizStatus: QuizStatus,
     quizVisibility: QuizVisibility,
     numOfRounds: number,
+    category: Category,
+    difficulty: Difficulty,
     authorId: string
   ) {
     const quiz = await prisma.quiz.create({
@@ -23,6 +32,8 @@ export class QuizService {
         quizStatus,
         quizVisibility,
         numOfRounds,
+        category,
+        difficulty,
         numOfPlays: 0,
         rating: 0,
         authorId
@@ -52,7 +63,7 @@ export class QuizService {
     const quizzes = await prisma.quiz.findMany({
       where: {
         AND: [
-          //{ quizStatus: QuizStatus.FINISHED }, for testing purposes
+          { quizStatus: 'PUBLISHED' },
           { quizVisibility: QuizVisibility.PUBLIC }
         ]
       }

@@ -32,6 +32,20 @@ export class UserService {
     return user;
   }
 
+  static async findUserByFirebaseId(firebaseId: string) {
+    const user = await prisma.user.findUnique({
+      where: { firebaseId }
+    });
+
+    if (!user) {
+      throw new NotFoundError(
+        messages.notFound('User with Firebase ID', firebaseId)
+      );
+    }
+
+    return user;
+  }
+
   static async findUsers() {
     const users = await prisma.user.findMany();
     return users;
