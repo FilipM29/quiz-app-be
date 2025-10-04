@@ -1,8 +1,9 @@
-import type { FastifyInstance, FastifySchema } from 'fastify';
+import type { FastifySchema } from 'fastify';
 import { Type } from '@sinclair/typebox';
 import {
   createUser,
   getUserById,
+  getUserByFirebaseId,
   getAllUsers,
   updateUser,
   deleteUser
@@ -33,6 +34,21 @@ const getUserByIdSchema: FastifySchema = {
   tags: ['users'],
   params: Type.Object({
     id: Type.String()
+  }),
+  response: {
+    200: User,
+    404: Type.Object({
+      message: Type.String()
+    })
+  }
+};
+
+// GET /users/firebase/:firebaseId schema
+const getUserByFirebaseIdSchema: FastifySchema = {
+  description: 'Get a user by Firebase ID',
+  tags: ['users'],
+  params: Type.Object({
+    firebaseId: Type.String()
   }),
   response: {
     200: User,
@@ -92,27 +108,32 @@ const deleteUserSchema: FastifySchema = {
 };
 
 // Export options for each endpoint
-export const createUserOpt = (_fastify: FastifyInstance) => ({
+export const createUserOpt = () => ({
   schema: createUserSchema,
   handler: createUser
 });
 
-export const getUserByIdOpt = (_fastify: FastifyInstance) => ({
+export const getUserByIdOpt = () => ({
   schema: getUserByIdSchema,
   handler: getUserById
 });
 
-export const getAllUsersOpt = (_fastify: FastifyInstance) => ({
+export const getUserByFirebaseIdOpt = () => ({
+  schema: getUserByFirebaseIdSchema,
+  handler: getUserByFirebaseId
+});
+
+export const getAllUsersOpt = () => ({
   schema: getAllUsersSchema,
   handler: getAllUsers
 });
 
-export const updateUserOpt = (_fastify: FastifyInstance) => ({
+export const updateUserOpt = () => ({
   schema: updateUserSchema,
   handler: updateUser
 });
 
-export const deleteUserOpt = (_fastify: FastifyInstance) => ({
+export const deleteUserOpt = () => ({
   schema: deleteUserSchema,
   handler: deleteUser
 });

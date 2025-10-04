@@ -1,4 +1,4 @@
-import type { FastifyInstance, FastifySchema } from 'fastify';
+import type { FastifySchema } from 'fastify';
 import { getHealth } from './handler';
 import { Type } from '@sinclair/typebox';
 
@@ -12,7 +12,7 @@ const getHealthSchema: FastifySchema = {
   }
 };
 
-export const getHealthOpt = (_fastify: FastifyInstance) => ({
+export const getHealthOpt = () => ({
   schema: getHealthSchema,
   handler: getHealth
 });
