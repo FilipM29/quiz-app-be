@@ -3,5 +3,6 @@ module.exports = {
   testPathIgnorePatterns: ['<rootDir>/lib/', '<rootDir>/node_modules/'],
   transform: {
     '^.+\\.(t|j)sx?$': ['@swc/jest']
-  }
+  },
+  setupFilesAfterEnv: ['<rootDir>/src/test-setup.js']
 };
